@@ -64,6 +64,14 @@ send more data until Ready is received.
 CONTENT = [] (empty)
 ```
 
+#### Switched Output Setting (MESSAGE_TYPE=0x20)
+
+This message signals the firmware to switch an auxillary 12V output on/off. SWITCH_ID is [0, 3], and DUTY_CYCLE is [0, 255].
+
+```
+CONTENT = [SWITCH_ID (1)][DUTY_CYCLE (1)]
+```
+
 ### Device to Host
 
 Messages from device to host follow the same general format.

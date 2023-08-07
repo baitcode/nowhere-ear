@@ -46,6 +46,7 @@ READY_MESSAGE_TYPE = b'\x08'
 LED_DATA_MESSAGE_TYPE = b'\x01'
 LED_FIRE_MESSAGE_TYPE = b'\x02'
 LED_SWAP_MESSAGE_TYPE = b'\x10'
+SW_OUTPUT_MESSAGE_TYPE = b'\x20'
 
 NUM_LEDS_PER_CHANNEL = 512
 
@@ -115,6 +116,12 @@ def make_fire_message(channel, brightness):
   message.append(brightness)
   return make_message(LED_FIRE_MESSAGE_TYPE, message)
 
+def make_switched_output_message(channel, duty):
+  message = []
+  message.append(channel)
+  message.append(duty)
+  return make_message(SW_OUTPUT_MESSAGE_TYPE, message)
+
 def main():
   if len(sys.argv) < 2:
     print(f'Usage: {sys.argv[0]} <serial port>')
@@ -145,6 +152,7 @@ def main():
               if ch not in MOONS.values():
                 messages.extend(make_led_data_message(ch))
             messages.extend(make_swap_message())
+            messages.extend(make_switched_output_message(0, 8))
             s.write(messages)
             if (now - last_framerate_print_time) > 1.0:
               print(f'{(1 / frame_delay):.1f} fps')
