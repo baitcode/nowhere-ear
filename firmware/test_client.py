@@ -31,6 +31,7 @@
 #  POSSIBILITY OF SUCH DAMAGE.
 
 import io
+import math
 import serial
 import sys
 import time
@@ -48,7 +49,7 @@ LED_FIRE_MESSAGE_TYPE = b'\x02'
 LED_SWAP_MESSAGE_TYPE = b'\x10'
 SW_OUTPUT_MESSAGE_TYPE = b'\x20'
 
-NUM_LEDS_PER_CHANNEL = 512
+NUM_LEDS_PER_CHANNEL = 256
 
 START_SEQ = [ b'\xe5', b'\x6b', b'\x03', b'\x1d' ]
 
@@ -122,6 +123,11 @@ def make_switched_output_message(channel, duty):
   message.append(duty)
   return make_message(SW_OUTPUT_MESSAGE_TYPE, message)
 
+def wave(now, min_value, max_value, period_s, offset_cycle_fraction):
+  x = math.cos((now / period_s + offset_cycle_fraction) * 2 * math.pi)
+  x = x / 2.0 + 0.5
+  return min_value + x * (max_value - min_value)
+
 def main():
   if len(sys.argv) < 2:
     print(f'Usage: {sys.argv[0]} <serial port>')
@@ -152,7 +158,20 @@ def main():
               if ch not in MOONS.values():
                 messages.extend(make_led_data_message(ch))
             messages.extend(make_swap_message())
-            messages.extend(make_switched_output_message(0, 8))
+
+            # Write waves to the switched outputs (driving whisker fibre LEDs)
+            whisker_r = wave(now, min_value=0, max_value=255, period_s=2.0,
+                             offset_cycle_fraction=0.0)
+            whisker_g = wave(now, min_value=0, max_value=255, period_s=2.0,
+                             offset_cycle_fraction=0.25)
+            whisker_b = wave(now, min_value=0, max_value=255, period_s=2.0,
+                             offset_cycle_fraction=0.5)
+            whisker_w = wave(now, min_value=0, max_value=255, period_s=2.0,
+                             offset_cycle_fraction=0.75)
+            messages.extend(make_switched_output_message(0, int(whisker_r)))
+            messages.extend(make_switched_output_message(1, int(whisker_g)))
+            messages.extend(make_switched_output_message(2, int(whisker_b)))
+            messages.extend(make_switched_output_message(3, int(whisker_w)))
             s.write(messages)
             if (now - last_framerate_print_time) > 1.0:
               print(f'{(1 / frame_delay):.1f} fps')
