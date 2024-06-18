@@ -76,8 +76,8 @@ fp-info-cache
 
 firmware/kat_controller/build/*
 
-.vs/
-.vscode/
-arduino/
-test/
+.vs/*
+.vscode/*
+arduino/*
+test/*
 
