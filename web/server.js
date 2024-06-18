@@ -240,7 +240,7 @@ if (kyc && kycSensors && kycSensors.length) {
             // console.log('pull', i, data)
 				    kyc.sensors[i].update(data)
             // kyc.write(kyc.makeFireMessage(10 + i, Math.max(Math.min(kyc.sensors[i].tension, 127), 0)))
-            // kyc.write(kyc.makeSwapMessage())
+            kyc.write(kyc.makeSwapMessage())
 			  })
         kyc.write(kyc.makeSwapMessage())
 			  break
