@@ -19,7 +19,7 @@ class MessageType {
   }
 }
 
-const  mMESSAGE_TYPES = {
+const  MESSAGE_TYPES = {
   // in
   Ready: new MessageType("Ready", Buffer.from([0x08])),
   Debug: new MessageType("Debug", Buffer.from([0x01])),
