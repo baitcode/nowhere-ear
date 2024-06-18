@@ -91,6 +91,34 @@ export const calculateFakeSensors = (selectedStructure) => {
                     stick: '10'
                 }
             ]
+            case 'cemetery':
+                return [
+                    {
+                        key: '1',
+                        sensorPosition: 0,
+                        stick: '1'
+                    },
+                    {
+                        key: '2',
+                        sensorPosition: 0,
+                        stick: '2'
+                    },
+                    {
+                        key: '3',
+                        sensorPosition: 0,
+                        stick: '3'
+                    },
+                    {
+                        key: '4',
+                        sensorPosition: 0,
+                        stick: '4'
+                    },
+                    {
+                        key: '5',
+                        sensorPosition: 0,
+                        stick: '5'
+                    },
+                ]
         case 'circle':
             return [
                 {

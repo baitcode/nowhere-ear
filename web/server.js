@@ -17,8 +17,8 @@ import {
 import {serverConfig} from '../modes_config.json'
 import {KYCClient} from "./lib/classes/KYCClient";
 import {kycConfig} from "./lib/configuration/kycConfig";
-import polzynki from "./lib/modes/polzynki";
-import kyctest from "./lib/modes/kyc/kyctestmode";
+// import polzynki from "./lib/modes/polzynki";
+// import kyctest from "./lib/modes/kyc/kyctestmode";
 
 console.log({serverConfig})
 
@@ -38,7 +38,7 @@ modes.onChange = onChange
 let currentMode
 let previousModeKey
 let currentModeKey
-let currentStructureKey = 'kyctst'
+let currentStructureKey = 'cemetery'
 const prodModesKeys = Object.keys(prodModes)
 const modesKeys = Object.keys(modes)
 let clientSensors = []
@@ -157,21 +157,176 @@ setInterval(() => {
   }
 }, 500)
 
-// Talk to arduinos
-const kyc = new KYCClient(kycConfig, calculateRealColumns(currentStructureKey))
-kyc.init()
-kyc.leds.forEach(l => {l.setMode(polzynki)})
+// Talk to KYC
+const ledsC = calculateRealColumns(currentStructureKey);
+const kyc = new KYCClient(kycConfig, ledsC)
+// kyc.init()
+// kyc.leds.forEach(l => {l.setMode(polzynki)})
 
-
-// const leds = calculateRealColumns(currentStructureKey);
 // kyc.on('data', data => {
 //   const sensors = [...clientSensors, ...kyc.sensors];
 //   const combinedLedsConfig = currentMode(leds, sensors)
 //   ledsConfig = regroupConfig(combinedLedsConfig.filter(Boolean))
-//   const stickLeds = ledsConfig.find(config => config.key === '1').leds
-//   const ledsInBufferArray = putLedsInBufferArray(stickLeds, 20);
+//   const ballLeds = ledsConfig.find(config => config.key === '1').leds
+//   const ledsInBufferArray = putLedsInBufferArray(ballLeds, 20);
 //   kyc.write(kyc.makeLedDataMessage(0, ledsInBufferArray))
 // })
+
+const kycSensors = kyc.sensors
+
+const calculateDataForRealLeds = (sensors) => {
+	// realSensor.update(sensorData)
+
+	realSensorsData = sensors.map(sensor => ({
+		tension: sensor.tension,
+		oldTension: sensor.oldTension,
+		sensorPosition: sensor.sensorPosition,
+		stick: sensor.stick,
+		slowSensorValue: sensor.slowSensorValue,
+		fastSensorValue: sensor.fastSensorValue,
+		key: sensor.name
+	}))
+
+	// console.log({realSensorsData})
+
+	const combinedLedsConfig = currentMode(calculateRealColumns(currentStructureKey), [...clientSensors, ...realSensorsData])
+
+	return regroupConfig(combinedLedsConfig.filter(Boolean))
+
+	// const ballLeds = ledsConfig.find(config => config.key === ball).leds
+	// return putLedsInBufferArray(ballLeds, NUMBER_OF_LEDS)
+}
+
+if (kyc && kycSensors && kycSensors.length) {
+	// console.log('we are updating', {kyc, kycSensors})
+	// console.log({ledsData})
+
+	kyc.serialPort.on('data', (data) => {
+		const message = kyc.readMessage(data)
+		// kyc.processMessage(message)
+    // kyc.makeSwapMessage()
+
+		switch (message.type.name) {
+			case "Ready":
+        console.log("Ready")
+			  if (!kyc.active) {
+				  kyc.active = true
+			  }
+			  const combinedLedsData = calculateDataForRealLeds(kyc.sensors)
+				kyc.leds.forEach(led => {
+          // console.log(combinedLedsData.leds)
+					const thisLedData = combinedLedsData.find(ledsData => ledsData.key === led.name)
+          // console.log({thisLedData})
+					if (thisLedData) {
+						const leds = thisLedData.leds
+						if (leds && leds.length) {
+							led.drawFrame(leds)
+						}
+					}
+				})
+
+        kyc.sensors.forEach((sensor, key) => {
+          // console.log('sensor', sensor.slowSensorValue)
+          console.log(key, sensor.tension)
+          kyc.write(kyc.makeFireMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
+          // kyc.write(kyc.makeSwapMessage())
+        })
+        // kyc.write(kyc.makeSwapMessage())
+        
+			  break
+			case "Pull":
+			  // console.log('message content', message.content)11
+			  message.content.data.forEach((data, i) => {
+            // console.log('pull', i, data)
+				    kyc.sensors[i].update(data)
+            // kyc.write(kyc.makeFireMessage(10 + i, Math.max(Math.min(kyc.sensors[i].tension, 127), 0)))
+            // kyc.write(kyc.makeSwapMessage())
+			  })
+        kyc.write(kyc.makeSwapMessage())
+			  break
+			default:
+			  break;
+		  }
+	 })
+}
+
+// if (realSensors && realSensors.length > 0) {
+// 	realSensors.map(realSensor => {
+// 		const port = realSensor.port
+// 		const parser = realSensor.parser
+// 		let areWeWriting = true
+
+// 		parser.on('data', data => {
+// 			if (areWeWriting && ledsConfig && ledsConfig.length > 0) {
+// 				// console.log({
+// 				// 	data,
+// 				// 	key: realSensor.key,
+// 				// 	writing: calculateDataForRealLeds(getInfoFromSensors(data), realSensor, realSensor.ball).toString()
+// 				// })
+// 				port.write(calculateDataForRealLeds(getInfoFromSensors(data), realSensor, realSensor.ball))
+// 				areWeWriting = false
+// 			} else {
+// 				// console.log('Data IN, listen', data)
+// 				// console.log(`${new Date().getMinutes()}:${new Date().getSeconds()}`)
+// 				if (data === 'eat me\r') {
+// 					areWeWriting = true
+// 				}
+// 			}
+// 		})
+// 	})
+// }
+
+////// ---> OLD CODE
+// Talk to arduinos
+// const realSensors = connectToArduinos()
+
+// const calculateDataForRealLeds = (sensorData, realSensor, ball) => {
+// 	realSensor.update(sensorData)
+
+// 	realSensorsData = realSensors.map(sensor => ({
+// 		tension: sensor.tension,
+// 		oldTension: sensor.oldTension,
+// 		sensorPosition: sensor.sensorPosition,
+// 		ball: sensor.ball,
+// 		slowSensorValue: sensor.slowSensorValue,
+// 		fastSensorValue: sensor.fastSensorValue,
+// 		key: sensor.key
+// 	}))
+
+// 	const combinedLedsConfig = currentMode(calculateRealColumns(currentStructureKey), [...clientSensors, ...realSensorsData])
+
+// 	ledsConfig = regroupConfig(combinedLedsConfig.filter(Boolean))
+
+// 	const ballLeds = ledsConfig.find(config => config.key === ball).leds
+// 	return putLedsInBufferArray(ballLeds, NUMBER_OF_LEDS)
+// }
+
+// if (realSensors && realSensors.length > 0) {
+// 	realSensors.map(realSensor => {
+// 		const port = realSensor.port
+// 		const parser = realSensor.parser
+// 		let areWeWriting = true
+
+// 		parser.on('data', data => {
+// 			if (areWeWriting && ledsConfig && ledsConfig.length > 0) {
+// 				// console.log({
+// 				// 	data,
+// 				// 	key: realSensor.key,
+// 				// 	writing: calculateDataForRealLeds(getInfoFromSensors(data), realSensor, realSensor.ball).toString()
+// 				// })
+// 				port.write(calculateDataForRealLeds(getInfoFromSensors(data), realSensor, realSensor.ball))
+// 				areWeWriting = false
+// 			} else {
+// 				// console.log('Data IN, listen', data)
+// 				// console.log(`${new Date().getMinutes()}:${new Date().getSeconds()}`)
+// 				if (data === 'eat me\r') {
+// 					areWeWriting = true
+// 				}
+// 			}
+// 		})
+// 	})
+// }
+////// ---> OLD CODE
 
 // Talk to python
 setInterval(() => {
@@ -212,11 +367,11 @@ const switchAutomaticModeHandler = (req, res) => {
 const arduinosStatusHandler = (req, res) => {
   const activeArduinos = realSensors.filter(sensor => sensor.active).map(sensor => ({
     name: sensor.key,
-    stick: sensor.stick
+    ball: sensor.ball
   }))
   const arduinosThatDidNotOpen = realSensors.filter(sensor => !sensor.active).map(sensor => ({
     name: sensor.key,
-    stick: sensor.stick
+    ball: sensor.ball
   }))
   res.json({
     activeArduinos,
@@ -275,7 +430,7 @@ io.on('connection', socket => {
     if (!sensors) return
 
     clientSensors = sensors
-    const combinedLedsConfig = currentMode(leds, [...clientSensors, ...realSensorsData])
+    const combinedLedsConfig = currentMode(ledsC, [...clientSensors, ...realSensorsData])
 
     ledsConfig = regroupConfig(combinedLedsConfig.filter(Boolean))
     socket.emit('ledsChanged', ledsConfig)

@@ -71,6 +71,7 @@ constexpr int kPullSensorAnalogMuxPins[kNumPullSensors] = { 3, 0, 1, 2, 5 };
 constexpr int kPullSensorFixedResistance = 1500; // 3V3 -> 1.5k -> test -> gnd.
 constexpr int kPullSensorNumReads = 16; // Average multiple readings.
 constexpr int kPullSensorUpdateIntervalUs = 10000; // 10ms.
+constexpr int kPullSensorSentIntervalUs = 12000; // 10ms.
 
 // Test button / LED.
 constexpr int kTestButtonPin = 27;
@@ -481,6 +482,7 @@ int main() {
   absolute_time_t last_print_time = start_time;
   absolute_time_t last_update_time = start_time;
   absolute_time_t last_pull_sensor_update_time = start_time;
+  absolute_time_t last_pull_sensor_send_time = start_time;
 
   uint8_t current_buffer = 0;
 
@@ -544,28 +546,28 @@ int main() {
       }
     }
 
-    bool test_mode = false;
-    if ((now - last_update_time) >= kTestModeTimeoutUs || gpio_get(kTestButtonPin) == false) {
-      test_mode = true;
-    }
+    // bool test_mode = false;
+    // if ((now - last_update_time) >= kTestModeTimeoutUs || gpio_get(kTestButtonPin) == false) {
+    //   test_mode = true;
+    // }
 
-    if (test_mode) {
-      set_test_leds_data(now);
-      if (make_debug_info) {
-        sprintf(debug_info + strlen(debug_info),
-          "Done computing test colours: %d\n", static_cast<int32_t>(absolute_time_diff_us(now, get_absolute_time())));
-      }
-      swapping = true;
-    }
+    // if (test_mode) {
+    //   set_test_leds_data(now);
+    //   if (make_debug_info) {
+    //     sprintf(debug_info + strlen(debug_info),
+    //       "Done computing test colours: %d\n", static_cast<int32_t>(absolute_time_diff_us(now, get_absolute_time())));
+    //   }
+    //   swapping = true;
+    // }
 
     if (swapping) {
-      if (!test_mode) {
+      // if (!test_mode) {
         for (int channel = 0; channel < kNumStrips; ++channel) {
           if (is_on_fire[channel]) {
             fire_calculators[channel].SetFire(&g_pixel_data_buffer[channel][0]);
           }
         }
-      }
+      // }
 
       UpdateTransposedBuffer(current_buffer);
 
@@ -585,7 +587,13 @@ int main() {
       current_buffer ^= 0x1;
 
       send_ready_packet();
-      send_pull_sensor_readings_packet(pull_sensor_filters);
+      // send_pull_sensor_readings_packet(pull_sensor_filters);
+    } else {
+      if ((now - last_pull_sensor_send_time) > kPullSensorSentIntervalUs) {
+        send_pull_sensor_readings_packet(pull_sensor_filters);
+
+        last_pull_sensor_send_time = now;
+      }
     }
 
     if ((now - last_pull_sensor_update_time) > kPullSensorUpdateIntervalUs) {

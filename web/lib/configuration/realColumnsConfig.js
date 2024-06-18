@@ -2,16 +2,6 @@
 
 export const calculateRealColumns = (selectedStructure) => {
     switch (selectedStructure) {
-        case 'kyctst':
-            return [{
-                numberOfLEDs: 20,
-                name: '1',
-                init: {
-                    x: 0,
-                    y: 0,
-                    z: 0
-                }
-            }]
         case 'duet':
             return [{
                 numberOfLEDs: 40,
@@ -370,6 +360,52 @@ export const calculateRealColumns = (selectedStructure) => {
                     }
                 }
             ]
+        case 'cemetery':
+            return [{
+                numberOfLEDs: 40,
+                name: '1',
+                init: {
+                    x: 397,
+                    y: -180,
+                    z: 0
+                }
+            },
+            {
+                numberOfLEDs: 40,
+                name: '2',
+                init: {
+                    x: 397 * Math.cos(2 * Math.PI * 1 / 5),
+                    y: -180,
+                    z: 397 * Math.sin(2 * Math.PI * 1 / 5)
+                }
+            },
+            {
+                numberOfLEDs: 40,
+                name: '3',
+                init: {
+                    x: 397 * Math.cos(2 * Math.PI * 2 / 5),
+                    y: -180,
+                    z: 397 * Math.sin(2 * Math.PI * 2 / 5)
+                }
+            },
+            {
+                name: '4',
+                init: {
+                    x: 397 * Math.cos(2 * Math.PI * 3 / 5),
+                    y: -180,
+                    z: 397 * Math.sin(2 * Math.PI * 3 / 5)
+                }
+            },
+            {
+                numberOfLEDs: 40,
+                name: '5',
+                init: {
+                    x: 397 * Math.cos(2 * Math.PI * 4 / 5),
+                    y: -180,
+                    z: 397 * Math.sin(2 * Math.PI * 4 / 5)
+                }
+            }
+        ]
             case 'mcf-mb-2022':
                 return [{
                     numberOfLEDs: 40,

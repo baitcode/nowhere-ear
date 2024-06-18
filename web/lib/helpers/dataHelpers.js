@@ -23,24 +23,29 @@ const putLedsInBufferArray = (stickLedsConfig, numberOfLeds) => {
 }
 
 // Takes leds data for one stick, puts it into Byte array to be sent to certain Arduino
-const putLedsInBufferArrayKYC = (stickLedsConfig, numberOfLeds) => {
-    const bufferArray = new ArrayBuffer(numberOfLeds * 3)
-    const ledsBufferArray = new Uint8Array(bufferArray)
+const putLedsInBufferArrayKYC = (stickLedsData) => {
+    if (stickLedsData) {
+        const bufferArray = new ArrayBuffer(stickLedsData.length * 3)
+        const ledsBufferArray = new Uint8Array(bufferArray)
 
-    stickLedsConfig.slice(0, numberOfLeds).forEach(led => {
-        const rgb = led.color
-        ledsBufferArray[led.number * 3] = rgb.r
-        ledsBufferArray[led.number * 3+1] = rgb.g
-        ledsBufferArray[led.number * 3+2] = rgb.b
-    })
-    return ledsBufferArray
+        stickLedsData.forEach(led => {
+            const rgb = led.color
+            // console.log({led}, {rgb})
+            if (rgb) {
+                ledsBufferArray[led.number * 3] = rgb.r
+                ledsBufferArray[led.number * 3 + 1] = rgb.g
+                ledsBufferArray[led.number * 3 + 2] = rgb.b
+            }
+        })
+        return ledsBufferArray
+    }
 }
 
 const addColor = (ledOne, ledTwo) => {
     return {
-        r: Math.min(ledOne.r + ledTwo.r, 255),
-        g: Math.min(ledOne.g + ledTwo.g, 255),
-        b: Math.min(ledOne.b + ledTwo.b, 255)
+        r: Math.min((ledOne ? ledOne.r : 0) + (ledTwo ? ledTwo.r : 0), 255),
+        g: Math.min((ledOne ? ledOne.g : 0) + (ledTwo ? ledTwo.g : 0), 255),
+        b: Math.min((ledOne ? ledOne.b : 0) + (ledTwo ? ledTwo.b : 0), 255)
     }
 }
 

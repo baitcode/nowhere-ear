@@ -1,17 +1,17 @@
 import SerialPort from 'serialport'
 import assert from "assert";
 import {putLedsInBufferArray, putLedsInBufferArrayKYC, regroupConfig} from "../helpers/dataHelpers";
-import kyctest from "../modes/kyc/kyctestmode";
+// import kyctest from "../modes/kyc/kyctestmode";
 import flicker from "../modes/flicker";
 import randomwhite from "../modes/kyc/randomwhite";
-import {colorStep} from "../helpers/colorHelpers";
+// import {colorStep} from "../helpers/colorHelpers";
 
 const NUM_LEDS_PER_CHANNEL = 512;
 
 class MessageType {
   constructor(name, byteValue) {
-    this.name = name;
-    this.byteValue = byteValue;
+    this.name = name
+    this.byteValue = byteValue
   }
 
   toString() {
@@ -35,40 +35,68 @@ const MESSAGE_TYPES = {
 const START_SEQ = Buffer.concat([Buffer.from([0xe5]), Buffer.from([0x6b]), Buffer.from([0x03]), Buffer.from([0x1d])]);
 
 class Sensor {
-  constructor(position) {
-    this.position = position
-    this.tension = 0
-    // it was always 10 in the old config
-    this.sensorPosition = 10
+  constructor(sensorConfig) {
+    // this.position = position
+    // this.tension = 0
+    // // it was always 10 in the old config
+    // this.sensorPosition = 10
 
-    this.oldTension = [0, 0, 0, 0]
-    this.stick = `${position + 1}`
-    this.key = "/dev/ttyUSB0"
-    this.rawHistory = [0]
-    this.onChange = () => {
-    }
+    // this.oldTension = [0, 0, 0, 0]
+    // this.ball = `${position + 1}`
+    // this.key = "/dev/ttyUSB0"
+    // this.rawHistory = [0]
+    // this.onChange = () => {
+    // }
+
+    this.tension = Math.max(sensorConfig.baseTension, 0)
+    this.fastSensorSpeed = 0
+    this.slowSensorSpeed = 0
+    this.oldTension = [this.tension, this.tension, this.tension, this.tension]
+    this.sensorPosition = sensorConfig.position
+    this.stick = sensorConfig.stick
+    this.key = sensorConfig.name
+    // this.baudRate = arduinoConfig.baudRate
+    this.active = true
   }
+
+  update(sensorData) {
+    if (sensorData) {
+        const tension = sensorData.fast
+        this.fastSensorValue = Math.max(sensorData.fast, 0)
+        this.slowSensorValue = Math.max(sensorData.slow, 0)
+        if (!tension) return
+        for (let key = 0; key < 4; key++) {
+            this.oldTension[key] = (this.oldTension[key])
+                ? this.lerp(this.oldTension[key], this.tension, 0.1 * (key + 1))
+                : this.tension
+            this.oldTension[key] = (this.oldTension[key] < 1)
+                ? 0
+                : this.oldTension[key]
+        }
+        this.tension = Math.max(tension, 0)
+    }
+}
 
   //  {raw, fast, slow}
-  recordPull(sensorData) {
-    const tension = sensorData.fast
-    this.fastSensorValue = Math.max(sensorData.fast, 0)
-    this.slowSensorValue = Math.max(sensorData.slow, 0)
-    if (!tension) return
-    for (let key = 0; key < 4; key++) {
-      this.oldTension[key] = (this.oldTension[key])
-        ? this._lerp(this.oldTension[key], this.tension, 0.1 * (key + 1))
-        : this.tension
-      this.oldTension[key] = (this.oldTension[key] < 1)
-        ? 0
-        : this.oldTension[key]
-    }
-    this.tension = Math.max(tension, 0)
-    this.onChange(this)
-  }
+  // recordPull(sensorData) {
+  //   const tension = sensorData.fast
+  //   this.fastSensorValue = Math.max(sensorData.fast, 0)
+  //   this.slowSensorValue = Math.max(sensorData.slow, 0)
+  //   if (!tension) return
+  //   for (let key = 0; key < 4; key++) {
+  //     this.oldTension[key] = (this.oldTension[key])
+  //       ? this._lerp(this.oldTension[key], this.tension, 0.1 * (key + 1))
+  //       : this.tension
+  //     this.oldTension[key] = (this.oldTension[key] < 1)
+  //       ? 0
+  //       : this.oldTension[key]
+  //   }
+  //   this.tension = Math.max(tension, 0)
+  //   // this.onChange(this)
+  // }
 
 
-  _lerp(inValue, outValue, fraction) {
+  lerp(inValue, outValue, fraction) {
     return inValue + (outValue - inValue) * fraction
   }
 
@@ -81,7 +109,7 @@ class KYCled {
     this.numberOfLEDs = config.numberOfLEDs
     this.channel = channel
     this.init = config.init
-    this.mode = kyctest //default
+    // this.mode = flicker //default
     this.currentLights = [...Array(config.numberOfLEDs).keys()].map(i => ({
       number: i,
       color: {
@@ -128,33 +156,34 @@ class KYCled {
     })
   }
 
-  drawFrame() {
-    const attemptedStep = [...Array(this.numberOfLEDs).keys()].map(i => ({
-      number: i,
-      color: colorStep(this.currentLights[i].color, this.futureLights[i].color, 0.1)
-    }))
+  drawFrame(ledsData) {
+    // const attemptedStep = [...Array(this.numberOfLEDs).keys()].map(i => ({
+    //   number: i,
+    //   color: colorStep(this.currentLights[i].color, this.futureLights[i].color, 0.1)
+    // }))
 
-    let ledData = putLedsInBufferArrayKYC(attemptedStep, this.numberOfLEDs);
+    let ledData = putLedsInBufferArrayKYC(ledsData, this.numberOfLEDs);
+    // console.log({ledData}, ledData.length)
     let buffer = this.kyc.makeLedDataMessage(this.channel, this.numberOfLEDs, ledData);
     this.kyc.write(buffer)
-    this.kyc.write(this.kyc.makeSwapMessage())
-    this.currentLights = attemptedStep
-    console.log(this.currentLights[5])
+    // this.kyc.write(this.kyc.makeSwapMessage())
+    this.currentLights = []
+    // console.log('frame current lights', this.currentLights[5])
   }
 
 }
 
 export class KYCClient {
-  constructor(config, ledConfig) {
-    this.address = config.address
+  constructor(kycConfig, ledConfig) {
+    this.address = kycConfig.portUsed.mac 
     this.active = false
-    this.ledStripsCount = config.ledStripsCount
-    this.sensorsCount = config.sensorsCount
+    // this.ledStripsCount = config.ledStripsCount
+    this.sensorsCount = kycConfig.sensors.length
     this.serialPort = new SerialPort(this.address)
-    this.sensors = []
-    for (let i = 0; i < config.sensorCount; i++) {
-      this.sensors.push(new Sensor(i))
-    }
+    // this.sensors = config
+    this.sensors = kycConfig.sensors.map(sensorConfig => new Sensor(sensorConfig))
+
+    // console.log('here', this.sensors)
 
     this.leds = []
     for (let i = 0; i < ledConfig.length; i++) {
@@ -166,6 +195,8 @@ export class KYCClient {
       }
       this.leds.push(ledstrip)
     }
+
+    this.init()
   }
 
   init() {
@@ -174,10 +205,10 @@ export class KYCClient {
       console.log(error)
       this.active = false
     })
-    this.serialPort.on('data', (data) => {
-      const message = this.readMessage(data)
-      this.processMessage(message)
-    })
+    // this.serialPort.on('data', (data) => {
+    //   const message = this.readMessage(data)
+    //   this.processMessage(message)
+    // })
     this.serialPort.on('close', (error) => {
       console.log(`Port was closed., port: ${this.address}`, error)
       this.active = false
@@ -189,23 +220,24 @@ export class KYCClient {
     this._events[event] = callback
   }
 
-  processMessage(message) {
-    switch (message.type.name) {
-      case "Ready":
-        if (!this.active) {
-          this.active = true
-        }
-        this.leds.forEach(l => l.drawFrame())
-        break
-      case "Pull":
-        message.content.data.forEach((data, i) => {
-          this.sensors[i].recordPull(data)
-        })
-        break
-      default:
-        break;
-    }
-  }
+  // processMessage(message) {
+  //   switch (message.type.name) {
+  //     case "Ready":
+  //       if (!this.active) {
+  //         this.active = true
+  //       }
+  //       this.leds.forEach(l => l.drawFrame())
+  //       break
+  //     case "Pull":
+  //       console.log('message content', message.content.data)
+  //       message.content.data.forEach((data, i) => {
+  //         this.sensors[i].update(data)
+  //       })
+  //       break
+  //     default:
+  //       break;
+  //   }
+  // }
 
   write(buffer) {
     this.serialPort.write(buffer)
@@ -258,9 +290,8 @@ export class KYCClient {
           content = {sensorCount, data: sensorData}
         }
       }
-    } catch (e) {
-      console.log(e)
-      console.log(data)
+    } catch (error) {
+      console.log('error while reading', {error, data})
     }
     return {type: msgType, content}
   }

@@ -195,6 +195,65 @@ export const calculateClientPoles = (selectedStructure) => {
                     z: 300
                 }
             }]
+        case 'cemetery':
+            return [
+                {
+                    geo: {
+                        x: 5,
+                        y: 375,
+                        z: 5
+                    },
+                    init: {
+                        x: 400,
+                        y: -62.5,
+                        z: 0
+                    }
+                }, {
+                    geo: {
+                        x: 5,
+                        y: 375,
+                        z: 5
+                    },
+                    init: {
+                        x: 400 * Math.cos(2 * Math.PI * 1 / 5),
+                        y: -62.5,
+                        z: 400 * Math.sin(2 * Math.PI * 1 / 5)
+                    }
+                }, {
+                    geo: {
+                        x: 5,
+                        y: 375,
+                        z: 5
+                    },
+                    init: {
+                        x: 400 * Math.cos(2 * Math.PI * 2 / 5),
+                        y: -62.5,
+                        z: 400 * Math.sin(2 * Math.PI * 2 / 5)
+                    }
+                }, {
+                    geo: {
+                        x: 5,
+                        y: 375,
+                        z: 5
+                    },
+                    init: {
+                        x: 400 * Math.cos(2 * Math.PI * 3 / 5),
+                        y: -62.5,
+                        z: 400 * Math.sin(2 * Math.PI * 3 / 5)
+                    }
+                }, {
+                    geo: {
+                        x: 5,
+                        y: 375,
+                        z: 5
+                    },
+                    init: {
+                        x: 400 * Math.cos(2 * Math.PI * 4 / 5),
+                        y: -62.5,
+                        z: 400 * Math.sin(2 * Math.PI * 4 / 5)
+                    }
+                }
+            ]   
         case 'circle':
             return [
                 {
