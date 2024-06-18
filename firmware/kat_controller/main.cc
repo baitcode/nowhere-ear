@@ -59,6 +59,7 @@ constexpr int kTestModeTimeoutUs = 1000000; // If we don't get an update for thi
 // Switched 12V outputs.
 constexpr int kNumSwitchedOutputs = 4;
 constexpr int kSwitchedOutputsPins[] = { 17, 18, 19, 20 };
+constexpr int kSwitchedOutputPWMWrapMultiplier = 16;
 
 // Analog multiplexer.
 constexpr int kAMuxControlPins[] = { 23, 24, 25 };
@@ -438,12 +439,17 @@ int main() {
   }
 
   pwm_config config = pwm_get_default_config();
-  // 30kHz PWM, 256 cycles period, 7.6MHz clock, ~= divider 16.
-  pwm_config_set_clkdiv(&config, 16);
-  pwm_config_set_wrap(&config, 255);
+  // The LED whiskers seem to require a very low PWM frequency.
+  // MOSFET drain rise time about 1ms.
+  // 125MHz / 256 = ~480kHz, which is the maximum clock divider.
+  // Using a wrap of 4096 (multiplier = 16) corresponds to about
+  // 120 Hz PWM frequency.
+  pwm_config_set_clkdiv(&config, 256);
+  pwm_config_set_wrap(&config, 256 * kSwitchedOutputPWMWrapMultiplier);
 
   for (uint32_t pwm_slice : switched_output_pwm_slices) {
     pwm_init(pwm_slice, &config, true);
+    pwm_set_phase_correct(pwm_slice, true);
     pwm_set_enabled(pwm_slice, true);
   }
 
@@ -538,9 +544,13 @@ int main() {
       {
         uint8_t channel = maybe_packet->content[0];
         uint8_t duty = maybe_packet->content[1];
+        if (make_debug_info) {
+          sprintf(debug_info + strlen(debug_info),
+            "SW Ch: %u, Duty: %u\n", channel, duty);
+        }
         pwm_set_chan_level(switched_output_pwm_slices[channel],
                            switched_output_pwm_channels[channel],
-                           duty);
+                           duty * kSwitchedOutputPWMWrapMultiplier);
       }
         break;
       }

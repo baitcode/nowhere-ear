@@ -31,7 +31,6 @@ const MESSAGE_TYPES = {
   Swap: new MessageType("Swap", Buffer.from([0x10]))
 }
 
-
 const START_SEQ = Buffer.concat([Buffer.from([0xe5]), Buffer.from([0x6b]), Buffer.from([0x03]), Buffer.from([0x1d])]);
 
 class Sensor {
@@ -271,6 +270,7 @@ export class KYCClient {
       msgType = this._incomingType(data.subarray(4, 5))
       if (msgType === MESSAGE_TYPES.Ready) {
       } else {
+        const msgLen = data.readIntLE(5, 2)
         if (msgType === MESSAGE_TYPES.Debug) {
           content = {message: content.toString('utf-8')}
         } else if (msgType === MESSAGE_TYPES.Pull) {
