@@ -229,7 +229,7 @@ if (kyc && kycSensors && kycSensors.length) {
           // console.log('sensor', sensor.slowSensorValue)
           console.log(key, sensor.tension)
           kyc.write(kyc.makeFireMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
-          // kyc.write(kyc.makeSwapMessage())
+          kyc.write(kyc.makeSwapMessage())
         })
         // kyc.write(kyc.makeSwapMessage())
         
