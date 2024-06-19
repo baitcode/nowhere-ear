@@ -251,6 +251,7 @@ export class KYCClient {
     const message = Buffer.alloc(2);
     message.writeIntLE(channel, 0, 1)
     message.writeIntLE(brightness, 1, 1)
+    console.log({channel})
     return this._makeMessage(MESSAGE_TYPES.Fire.byteValue, message);
   }
 
