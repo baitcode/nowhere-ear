@@ -248,10 +248,10 @@ export class KYCClient {
 
   // [LED_OUTPUT_CHANNEL (1)][FIRE_BRIGHTNESS (1)]
   makeFireMessage(channel, brightness) {
-    const message = Buffer.alloc(2);
-    message.writeIntLE(channel, 0, 1)
-    message.writeIntLE(brightness, 1, 1)
-    console.log({channel})
+    // const message = Buffer.alloc(2);
+    // message.writeIntLE(channel, 0, 1)
+    // message.writeIntLE(brightness, 1, 1)
+    const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
     return this._makeMessage(MESSAGE_TYPES.Fire.byteValue, message);
   }
 
