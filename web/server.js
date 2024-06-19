@@ -242,7 +242,7 @@ if (kyc && kycSensors && kycSensors.length) {
             // kyc.write(kyc.makeFireMessage(10 + i, Math.max(Math.min(kyc.sensors[i].tension, 127), 0)))
             // kyc.write(kyc.makeSwapMessage())
 			  })
-        // kyc.write(kyc.makeSwapMessage())
+        kyc.write(kyc.makeSwapMessage())
 			  break
 			default:
 			  break;
