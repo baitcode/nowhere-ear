@@ -202,51 +202,63 @@ if (kyc && kycSensors && kycSensors.length) {
 	// console.log({ledsData})
 
 	kyc.serialPort.on('data', (data) => {
-		const message = kyc.readMessage(data)
-		// kyc.processMessage(message)
-    // kyc.makeSwapMessage()
-
-		switch (message.type.name) {
-			case "Ready":
-        console.log("Ready")
-			  if (!kyc.active) {
-				  kyc.active = true
-			  }
-			  const combinedLedsData = calculateDataForRealLeds(kyc.sensors)
-				kyc.leds.forEach(led => {
-          // console.log(combinedLedsData.leds)
-					const thisLedData = combinedLedsData.find(ledsData => ledsData.key === led.name)
-          // console.log({thisLedData})
-					if (thisLedData) {
-						const leds = thisLedData.leds
-						if (leds && leds.length) {
-							led.drawFrame(leds)
-						}
-					}
-				})
-
-        kyc.sensors.forEach((sensor, key) => {
-          // console.log('sensor', sensor.slowSensorValue)
-          console.log(key, sensor.tension)
-          kyc.write(kyc.makeFireMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
-          // kyc.write(kyc.makeSwapMessage())
-        })
-        // kyc.write(kyc.makeSwapMessage())
-        
-			  break
-			case "Pull":
-			  // console.log('message content', message.content)11
-			  message.content.data.forEach((data, i) => {
-            // console.log('pull', i, data)
-				    kyc.sensors[i].update(data)
-            // kyc.write(kyc.makeFireMessage(10 + i, Math.max(Math.min(kyc.sensors[i].tension, 127), 0)))
+    try {
+      const message = kyc.readMessage(data)
+      // kyc.processMessage(message)
+      // kyc.makeSwapMessage()
+  
+      switch (message.type.name) {
+        case "Ready":
+          console.log("Ready")
+          // if (!kyc.active) {
+          //   kyc.active = true
+          // }
+          const combinedLedsData = calculateDataForRealLeds(kyc.sensors)
+          // kyc.leds.forEach(led => {
+          //   // console.log(combinedLedsData.leds)
+          //   const thisLedData = combinedLedsData.find(ledsData => ledsData.key === led.name)
+          //   // console.log({thisLedData})
+          //   if (thisLedData) {
+          //     const leds = thisLedData.leds
+          //     if (leds && leds.length) {
+          //       led.drawFrame(leds)
+          //     }
+          //   }
+          // })
+  
+          kyc.sensors.forEach((sensor, key) => {
+            // console.log('sensor', sensor.slowSensorValue)
+            // console.log(10 + key, sensor.tension)
+            const brightness = Math.max(Math.min(sensor.tension, 127), 0)
+            console.log('fire', 10 + key, {brightness})
+            kyc.write(kyc.makeFireMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
+            // kyc.write(kyc.makeSwitchMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
             // kyc.write(kyc.makeSwapMessage())
-			  })
-        kyc.write(kyc.makeSwapMessage())
-			  break
-			default:
-			  break;
-		  }
+          })
+          // kyc.write(kyc.makeSwapMessage())
+          
+          break
+        case "Pull":
+          // console.log('message content', message.content)11
+          message.sensorData.forEach((data, i) => {
+              // console.log('pull', 10 + i, data)
+              kyc.sensors[i].update(data)
+              const brightness = Math.max(Math.min(kyc.sensors[i].tension, 127), 0)
+              console.log('pull', 10 + i, {brightness})
+              // kyc.write(kyc.makeFireMessage(10 + i, Math.max(Math.min(kyc.sensors[i].tension, 127), 0)))
+              // kyc.write(kyc.makeSwapMessage())
+          })
+          kyc.write(kyc.makeSwapMessage())
+          break
+        case "Debug":
+            console.log('Debug message: ', message.message)
+            break
+        default:
+          break;
+        }
+    } catch (error) {
+      console.log('Error in port on data', {error})
+    }
 	 })
 }
 

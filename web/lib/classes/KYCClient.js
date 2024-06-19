@@ -28,7 +28,8 @@ const  MESSAGE_TYPES = {
   // out
   Data: new MessageType("Data", Buffer.from([0x01])),
   Fire: new MessageType("Fire", Buffer.from([0x02])),
-  Swap: new MessageType("Swap", Buffer.from([0x10]))
+  Swap: new MessageType("Swap", Buffer.from([0x10])),
+  Switch: new MessageType("Switch", Buffer.from([0x20]))
 }
 
 const START_SEQ = Buffer.concat([Buffer.from([0xe5]), Buffer.from([0x6b]), Buffer.from([0x03]), Buffer.from([0x1d])]);
@@ -165,7 +166,7 @@ class KYCled {
     // console.log({ledData}, ledData.length)
     let buffer = this.kyc.makeLedDataMessage(this.channel, this.numberOfLEDs, ledData);
     this.kyc.write(buffer)
-    // this.kyc.write(this.kyc.makeSwapMessage())
+    this.kyc.write(this.kyc.makeSwapMessage())
     this.currentLights = []
     // console.log('frame current lights', this.currentLights[5])
   }
@@ -174,7 +175,7 @@ class KYCled {
 
 export class KYCClient {
   constructor(kycConfig, ledConfig) {
-    this.address = kycConfig.portUsed.pi 
+    this.address = kycConfig.portUsed.mac
     this.active = false
     // this.ledStripsCount = config.ledStripsCount
     this.sensorsCount = kycConfig.sensors.length
@@ -248,12 +249,21 @@ export class KYCClient {
 
   // [LED_OUTPUT_CHANNEL (1)][FIRE_BRIGHTNESS (1)]
   makeFireMessage(channel, brightness) {
-    // const message = Buffer.alloc(2);
-    // message.writeIntLE(channel, 0, 1)
-    // message.writeIntLE(brightness, 1, 1)
-    const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
+    const message = Buffer.alloc(2);
+    message.writeIntLE(channel, 0, 1)
+    message.writeIntLE(brightness, 1, 1)
+    // const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
     return this._makeMessage(MESSAGE_TYPES.Fire.byteValue, message);
   }
+
+  // makeSwitchMessage(channel, brightness) {
+  //   // const message = Buffer.alloc(2);
+  //   // message.writeIntLE(channel, 0, 1)
+  //   // message.writeIntLE(brightness, 1, 1)
+  //   const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
+  //   return this._makeMessage(MESSAGE_TYPES.Switch.byteValue, message);
+  // }
+
 
   // [LED_OUTPUT_CHANNEL (1)][NUM_LEDS (2)][DATA (NUM_LEDS * 3)]
   // [LED0-G (1)][LED0-R (1)][LED0-B (1)][LED1-G (1)][LED1-R (1)][LED1-B (1)]...
@@ -265,16 +275,17 @@ export class KYCClient {
 
   readMessage(data) {
     // this._waitUntilStartSeq(data);
-    let content = {}
+    // let content = {}
     let msgType = "NONE"
     try {
       msgType = this._incomingType(data.subarray(4, 5))
-      if (msgType === MESSAGE_TYPES.Ready) {
-      } else {
-        const msgLen = data.readIntLE(5, 2)
+      // console.log({msgType})
+      // if (msgType === MESSAGE_TYPES.Ready) {
+      // } else {
+      //   const msgLen = data.readIntLE(5, 2)
         if (msgType === MESSAGE_TYPES.Debug) {
-          content = {message: content.toString('utf-8')}
-        } else if (msgType === MESSAGE_TYPES.Pull) {
+          return {type: msgType, message: data.toString('utf8')}
+        } else if (msgType === MESSAGE_TYPES.Pull) { 
           const sensorCount = data.readIntLE(7, 1)
 
           const sensorData = []
@@ -288,13 +299,14 @@ export class KYCClient {
               }
             )
           }
-          content = {sensorCount, data: sensorData}
+          // console.log({sensorCount, sensorData})
+          return {type: msgType, sensorCount, sensorData}
         }
-      }
+      // }
     } catch (error) {
       console.log('error while reading', {error, data})
     }
-    return {type: msgType, content}
+    return {type: msgType}
   }
 
   // [START (4)][MESSAGE_TYPE (1)][MESSAGE_LEN (2)][CONTENT (MESSAGE_LEN)]
@@ -307,10 +319,14 @@ export class KYCClient {
   }
 
   _incomingType(typeBuff) {
-    for (const messagetype of Object.keys(MESSAGE_TYPES)) {
-      if (typeBuff.equals(MESSAGE_TYPES[messagetype].byteValue)) {
-        return MESSAGE_TYPES[messagetype]
-      }
+    if(typeBuff.equals(MESSAGE_TYPES.Ready.byteValue)) {
+      return MESSAGE_TYPES.Ready
+    }
+    if(typeBuff.equals(MESSAGE_TYPES.Pull.byteValue)) {
+      return MESSAGE_TYPES.Pull
+    }
+    if (typeBuff.equals(MESSAGE_TYPES.Debug.byteValue)) {
+      return MESSAGE_TYPES.Debug
     }
     return new MessageType("UNKNOWN")
   }

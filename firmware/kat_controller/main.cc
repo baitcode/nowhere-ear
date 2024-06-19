@@ -72,7 +72,7 @@ constexpr int kPullSensorAnalogMuxPins[kNumPullSensors] = { 3, 0, 1, 2, 5 };
 constexpr int kPullSensorFixedResistance = 1500; // 3V3 -> 1.5k -> test -> gnd.
 constexpr int kPullSensorNumReads = 16; // Average multiple readings.
 constexpr int kPullSensorUpdateIntervalUs = 10000; // 10ms.
-constexpr int kPullSensorSentIntervalUs = 12000; // 10ms.
+constexpr int kPullSensorSentIntervalUs = 12000; // 12ms.
 
 // Test button / LED.
 constexpr int kTestButtonPin = 27;
@@ -270,21 +270,21 @@ uint8_t test_sinusoidal(int t, int period) {
   return lut[t];
 }
 
-void set_test_leds_data(uint64_t now) {
-  // Where are we in the time cycle? [0 - kTestColourPeriodUSeconds]. We do the modulus in int64 and cast to int32 now.
-  int t = now % kTestColourPeriodUSeconds;
+// void set_test_leds_data(uint64_t now) {
+//   // Where are we in the time cycle? [0 - kTestColourPeriodUSeconds]. We do the modulus in int64 and cast to int32 now.
+//   int t = now % kTestColourPeriodUSeconds;
 
-  // Compute colours for all LEDs.
-  for (int strip = 0; strip < kNumStrips; ++strip) {
-    for (int led = 0; led < kMaxStripLength; ++led) {
-      // [-128 - 128] -> [0, 255]
-      int led_offset = static_cast<int64_t>(led % kTestLedPeriod) * kTestColourPeriodUSeconds / kTestLedPeriod;
-      g_pixel_data_buffer[strip][led * 3] = test_sinusoidal(t + led_offset, kTestColourPeriodUSeconds);
-      g_pixel_data_buffer[strip][led * 3 + 1] = test_sinusoidal(t + kTestColourPeriodUSeconds / 3 + led_offset, kTestColourPeriodUSeconds);
-      g_pixel_data_buffer[strip][led * 3 + 2] = test_sinusoidal(t + 2 * kTestColourPeriodUSeconds / 3 + led_offset, kTestColourPeriodUSeconds);
-    }
-  }
-}
+//   // Compute colours for all LEDs.
+//   for (int strip = 0; strip < kNumStrips; ++strip) {
+//     for (int led = 0; led < kMaxStripLength; ++led) {
+//       // [-128 - 128] -> [0, 255]
+//       int led_offset = static_cast<int64_t>(led % kTestLedPeriod) * kTestColourPeriodUSeconds / kTestLedPeriod;
+//       g_pixel_data_buffer[strip][led * 3] = test_sinusoidal(t + led_offset, kTestColourPeriodUSeconds);
+//       g_pixel_data_buffer[strip][led * 3 + 1] = test_sinusoidal(t + kTestColourPeriodUSeconds / 3 + led_offset, kTestColourPeriodUSeconds);
+//       g_pixel_data_buffer[strip][led * 3 + 2] = test_sinusoidal(t + 2 * kTestColourPeriodUSeconds / 3 + led_offset, kTestColourPeriodUSeconds);
+//     }
+//   }
+// }
 
 void write_uint16(uint8_t* dst, uint16_t val) {
   dst[0] = val & 0xff;
@@ -596,14 +596,17 @@ int main() {
       start_dma_output(current_buffer);
       current_buffer ^= 0x1;
 
-      send_ready_packet();
       // send_pull_sensor_readings_packet(pull_sensor_filters);
+      swapping = false;
+      send_ready_packet();
     } else {
       if ((now - last_pull_sensor_send_time) > kPullSensorSentIntervalUs) {
         send_pull_sensor_readings_packet(pull_sensor_filters);
 
         last_pull_sensor_send_time = now;
+        // send_ready_packet();
       }
+      // send_ready_packet();
     }
 
     if ((now - last_pull_sensor_update_time) > kPullSensorUpdateIntervalUs) {
