@@ -362,7 +362,7 @@ export const calculateRealColumns = (selectedStructure) => {
             ]
         case 'cemetery':
             return [{
-                numberOfLEDs: 40,
+                numberOfLEDs: 120,
                 name: '1',
                 init: {
                     x: 397,
@@ -371,7 +371,7 @@ export const calculateRealColumns = (selectedStructure) => {
                 }
             },
             {
-                numberOfLEDs: 40,
+                numberOfLEDs: 120,
                 name: '2',
                 init: {
                     x: 397 * Math.cos(2 * Math.PI * 1 / 5),
@@ -380,7 +380,7 @@ export const calculateRealColumns = (selectedStructure) => {
                 }
             },
             {
-                numberOfLEDs: 40,
+                numberOfLEDs: 120,
                 name: '3',
                 init: {
                     x: 397 * Math.cos(2 * Math.PI * 2 / 5),
@@ -389,6 +389,7 @@ export const calculateRealColumns = (selectedStructure) => {
                 }
             },
             {
+                numberOfLEDs: 120,
                 name: '4',
                 init: {
                     x: 397 * Math.cos(2 * Math.PI * 3 / 5),
@@ -397,7 +398,7 @@ export const calculateRealColumns = (selectedStructure) => {
                 }
             },
             {
-                numberOfLEDs: 40,
+                numberOfLEDs: 120,
                 name: '5',
                 init: {
                     x: 397 * Math.cos(2 * Math.PI * 4 / 5),

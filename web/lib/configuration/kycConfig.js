@@ -4,7 +4,7 @@ export const kycConfig = {
     pi: "/dev/ttyACM0",
   },
   "baudRate": 57600,
-  "sensorCount": 1,
+  "sensorCount": 5,
   sensors: [
     {
       "name": "1",

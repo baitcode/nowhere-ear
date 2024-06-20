@@ -214,28 +214,29 @@ if (kyc && kycSensors && kycSensors.length) {
           //   kyc.active = true
           // }
           const combinedLedsData = calculateDataForRealLeds(kyc.sensors)
-          // kyc.leds.forEach(led => {
-          //   // console.log(combinedLedsData.leds)
-          //   const thisLedData = combinedLedsData.find(ledsData => ledsData.key === led.name)
-          //   // console.log({thisLedData})
-          //   if (thisLedData) {
-          //     const leds = thisLedData.leds
-          //     if (leds && leds.length) {
-          //       led.drawFrame(leds)
-          //     }
-          //   }
-          // })
+          kyc.leds.forEach(led => {
+            // console.log(combinedLedsData.leds)
+            const thisLedData = combinedLedsData.find(ledsData => ledsData.key === led.name)
+            // console.log({thisLedData})
+            if (thisLedData) {
+              const leds = thisLedData.leds
+              if (leds && leds.length) {
+                led.drawFrame(leds)
+              }
+            }
+          })
   
-          kyc.sensors.forEach((sensor, key) => {
+          kyc.sensors.forEach((sensor) => {
             // console.log('sensor', sensor.slowSensorValue)
             // console.log(10 + key, sensor.tension)
-            const brightness = Math.max(Math.min(sensor.tension, 127), 0)
-            console.log('fire', 10 + key, {brightness})
-            kyc.write(kyc.makeFireMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
-            // kyc.write(kyc.makeSwitchMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
+            // const brightness = Math.max(Math.min(sensor.tension, 127), 0)
+            // console.log('fire', 10 + key, {brightness})
+            // kyc.write(kyc.makeFireMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
+            // // kyc.write(kyc.makeSwitchMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
             // kyc.write(kyc.makeSwapMessage())
+            sensor.makeFire()
           })
-          // kyc.write(kyc.makeSwapMessage())
+          kyc.write(kyc.makeSwapMessage())
           
           break
         case "Pull":
@@ -243,8 +244,8 @@ if (kyc && kycSensors && kycSensors.length) {
           message.sensorData.forEach((data, i) => {
               // console.log('pull', 10 + i, data)
               kyc.sensors[i].update(data)
-              const brightness = Math.max(Math.min(kyc.sensors[i].tension, 127), 0)
-              console.log('pull', 10 + i, {brightness})
+              // const brightness = Math.max(Math.min(kyc.sensors[i].tension, 127), 0)
+              // console.log('pull', 10 + i, {brightness})
               // kyc.write(kyc.makeFireMessage(10 + i, Math.max(Math.min(kyc.sensors[i].tension, 127), 0)))
               // kyc.write(kyc.makeSwapMessage())
           })

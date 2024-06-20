@@ -535,6 +535,7 @@ int main() {
         uint8_t brightness = maybe_packet->content[1];
         is_on_fire[channel] = true;
         fire_calculators[channel].SetBrightness(brightness);
+        fire_calculators[channel].SetFire(&g_pixel_data_buffer[channel][0]);
       }
         break;
       case kLEDSwapMessageType:
@@ -572,11 +573,11 @@ int main() {
 
     if (swapping) {
       // if (!test_mode) {
-        for (int channel = 0; channel < kNumStrips; ++channel) {
-          if (is_on_fire[channel]) {
-            fire_calculators[channel].SetFire(&g_pixel_data_buffer[channel][0]);
-          }
-        }
+        // for (int channel = 0; channel < kNumStrips; ++channel) {
+        //   if (is_on_fire[channel]) {
+        //     fire_calculators[channel].SetFire(&g_pixel_data_buffer[channel][0]);
+        //   }
+        // }
       // }
 
       UpdateTransposedBuffer(current_buffer);

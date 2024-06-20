@@ -35,7 +35,7 @@ const  MESSAGE_TYPES = {
 const START_SEQ = Buffer.concat([Buffer.from([0xe5]), Buffer.from([0x6b]), Buffer.from([0x03]), Buffer.from([0x1d])]);
 
 class Sensor {
-  constructor(sensorConfig) {
+  constructor(sensorConfig, kyc) {
     // this.position = position
     // this.tension = 0
     // // it was always 10 in the old config
@@ -47,6 +47,7 @@ class Sensor {
     // this.rawHistory = [0]
     // this.onChange = () => {
     // }
+    this.kyc = kyc
 
     this.tension = Math.max(sensorConfig.baseTension, 0)
     this.fastSensorSpeed = 0
@@ -75,7 +76,24 @@ class Sensor {
         }
         this.tension = Math.max(tension, 0)
     }
-}
+  }
+
+  makeFire() {
+    // const attemptedStep = [...Array(this.numberOfLEDs).keys()].map(i => ({
+    //   number: i,
+    //   color: colorStep(this.currentLights[i].color, this.futureLights[i].color, 0.1)
+    // }))
+
+    const brightness = Math.max(Math.min(this.tension, 127), 0)
+    if (brightness > 1) {
+      console.log('fire', parseInt(this.key) + 9, {brightness})
+      let buffer = this.kyc.makeFireMessage(parseInt(this.key) + 9, brightness)
+      this.kyc.write(buffer)
+    }
+    // kyc.write(kyc.makeSwitchMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
+    // this.kyc.write(this.kyc.makeSwapMessage())
+    // console.log('frame current lights', this.currentLights[5])
+  }
 
   //  {raw, fast, slow}
   // recordPull(sensorData) {
@@ -163,25 +181,24 @@ class KYCled {
     // }))
 
     let ledData = putLedsInBufferArrayKYC(ledsData, this.numberOfLEDs);
-    // console.log({ledData}, ledData.length)
+    console.log('draw', this.channel)
     let buffer = this.kyc.makeLedDataMessage(this.channel, this.numberOfLEDs, ledData);
     this.kyc.write(buffer)
-    this.kyc.write(this.kyc.makeSwapMessage())
+    // this.kyc.write(this.kyc.makeSwapMessage())
     this.currentLights = []
     // console.log('frame current lights', this.currentLights[5])
   }
-
 }
 
 export class KYCClient {
   constructor(kycConfig, ledConfig) {
-    this.address = kycConfig.portUsed.pi
+    this.address = kycConfig.portUsed.mac
     this.active = false
     // this.ledStripsCount = config.ledStripsCount
     this.sensorsCount = kycConfig.sensors.length
     this.serialPort = new SerialPort(this.address)
     // this.sensors = config
-    this.sensors = kycConfig.sensors.map(sensorConfig => new Sensor(sensorConfig))
+    this.sensors = kycConfig.sensors.map(sensorConfig => new Sensor(sensorConfig, this))
 
     // console.log('here', this.sensors)
 
@@ -249,10 +266,10 @@ export class KYCClient {
 
   // [LED_OUTPUT_CHANNEL (1)][FIRE_BRIGHTNESS (1)]
   makeFireMessage(channel, brightness) {
-    const message = Buffer.alloc(2);
-    message.writeIntLE(channel, 0, 1)
-    message.writeIntLE(brightness, 1, 1)
-    // const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
+    // const message = Buffer.alloc(2);
+    // message.writeIntLE(channel, 0, 1)
+    // message.writeIntLE(brightness, 1, 1)
+    const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
     return this._makeMessage(MESSAGE_TYPES.Fire.byteValue, message);
   }
 
