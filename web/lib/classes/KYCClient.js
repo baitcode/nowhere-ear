@@ -175,7 +175,7 @@ class KYCled {
 
 export class KYCClient {
   constructor(kycConfig, ledConfig) {
-    this.address = kycConfig.portUsed.mac
+    this.address = kycConfig.portUsed.pi
     this.active = false
     // this.ledStripsCount = config.ledStripsCount
     this.sensorsCount = kycConfig.sensors.length
