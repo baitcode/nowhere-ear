@@ -1,12 +1,10 @@
 import SerialPort from 'serialport'
 import assert from "assert";
-import {putLedsInBufferArray, putLedsInBufferArrayKYC, regroupConfig} from "../helpers/dataHelpers";
+import {putLedsInBufferArrayKYC, regroupConfig} from "../helpers/dataHelpers";
 // import kyctest from "../modes/kyc/kyctestmode";
-import flicker from "../modes/flicker";
+// import flicker from "../modes/flicker";
 import randomwhite from "../modes/kyc/randomwhite";
 // import {colorStep} from "../helpers/colorHelpers";
-
-const NUM_LEDS_PER_CHANNEL = 512;
 
 class MessageType {
   constructor(name, byteValue) {
@@ -194,7 +192,7 @@ class KYCled {
 
 export class KYCClient {
   constructor(kycConfig, ledConfig) {
-    this.address = kycConfig.portUsed.mac
+    this.address = kycConfig.portUsed.pi
     this.active = false
     // this.ledStripsCount = config.ledStripsCount
     this.sensorsCount = kycConfig.sensors.length

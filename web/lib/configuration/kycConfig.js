@@ -1,3 +1,5 @@
+import {NUMBER_OF_LEDS} from './constants'
+
 export const kycConfig = {
   portUsed: {
     mac: "/dev/tty.usbmodem1101",
@@ -9,35 +11,35 @@ export const kycConfig = {
     {
       "name": "1",
       "stick": "1",
-      "numberOfLEDs": 120,
+      "numberOfLEDs": NUMBER_OF_LEDS,
       "position": 0,
       "baseTension": 0
     },
     {
       "name": "2",
       "stick": "2",
-      "numberOfLEDs": 120,
+      "numberOfLEDs": NUMBER_OF_LEDS,
       "position": 0,
       "baseTension": 0
     },
     {
       "name": "3",
       "stick": "3",
-      "numberOfLEDs": 120,
+      "numberOfLEDs": NUMBER_OF_LEDS,
       "position": 0,
       "baseTension": 0
     },
     {
       "name": "4",
       "stick": "4",
-      "numberOfLEDs": 120,
+      "numberOfLEDs": NUMBER_OF_LEDS,
       "position": 0,
       "baseTension": 0
     },
     {
       "name": "5",
       "stick": "5",
-      "numberOfLEDs": 120,
+      "numberOfLEDs": NUMBER_OF_LEDS,
       "position": 0,
       "baseTension": 0
     }

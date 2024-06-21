@@ -3,24 +3,24 @@
 /* global Uint8Array */
 
 // Takes leds data for one stick, puts it into Byte array to be sent to certain Arduino
-const putLedsInBufferArray = (stickLedsConfig, numberOfLeds) => {
-    const bufferArray = new ArrayBuffer(numberOfLeds * 3 + 3)
-    const ledsBufferArray = new Uint8Array(bufferArray)
-    const startByte = 0x10
-    const sizeByte = 0x11
-    const checkSum = 0x12
+// const putLedsInBufferArray = (stickLedsConfig, numberOfLeds) => {
+//     const bufferArray = new ArrayBuffer(numberOfLeds * 3 + 3)
+//     const ledsBufferArray = new Uint8Array(bufferArray)
+//     const startByte = 0x10
+//     const sizeByte = 0x11
+//     const checkSum = 0x12
 
-    ledsBufferArray[0] = startByte
-    ledsBufferArray[1] = sizeByte
-    stickLedsConfig.slice(0, numberOfLeds).forEach(led => {
-        const rgb = led.color
-        ledsBufferArray[led.number * 3 + 2] = rgb.r
-        ledsBufferArray[led.number * 3 + 3] = rgb.g
-        ledsBufferArray[led.number * 3 + 4] = rgb.b
-    })
-    ledsBufferArray[numberOfLeds * 3 + 2] = checkSum
-    return ledsBufferArray
-}
+//     ledsBufferArray[0] = startByte
+//     ledsBufferArray[1] = sizeByte
+//     stickLedsConfig.slice(0, numberOfLeds).forEach(led => {
+//         const rgb = led.color
+//         ledsBufferArray[led.number * 3 + 2] = rgb.r
+//         ledsBufferArray[led.number * 3 + 3] = rgb.g
+//         ledsBufferArray[led.number * 3 + 4] = rgb.b
+//     })
+//     ledsBufferArray[numberOfLeds * 3 + 2] = checkSum
+//     return ledsBufferArray
+// }
 
 // Takes leds data for one stick, puts it into Byte array to be sent to certain Arduino
 const putLedsInBufferArrayKYC = (stickLedsData, ledsNumber) => {
@@ -142,7 +142,7 @@ export {
     addColor,
     combineLEDs,
 	regroupConfig,
-    putLedsInBufferArray,
+    // putLedsInBufferArray,
     getInfoFromSensors,
     eliminateLEDsConfigRepetition,
     putLedsInBufferArrayKYC

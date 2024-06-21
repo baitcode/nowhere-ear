@@ -243,7 +243,7 @@ if (kyc && kycSensors && kycSensors.length) {
         case "Pull":
           // console.log('message content', message.content)11
           message.sensorData.forEach((data, i) => {
-              console.log('pull', 10 + i, data)
+              // console.log('pull', 10 + i, data)
               kyc.sensors[i].update(data)
               // const brightness = Math.max(Math.min(kyc.sensors[i].tension, 127), 0)
               // console.log('pull', 10 + i, {brightness})

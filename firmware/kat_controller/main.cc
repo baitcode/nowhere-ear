@@ -102,8 +102,8 @@ constexpr uint8_t kSwitchedOutputMessageType = 0x20;
 // This is the resolution for that function.
 constexpr int kSinusoidalLutResolution = 4096;
 
-constexpr int kTestLedPeriod = 10;
-constexpr int kTestBrightness = 192;
+// constexpr int kTestLedPeriod = 10;
+// constexpr int kTestBrightness = 192;
 
 // This is the RGB data stored per strip. Each LED at each
 // strip has 3 bytes - green, red, blue.
@@ -260,7 +260,7 @@ uint8_t test_sinusoidal(int t, int period) {
     uint8_t* lut = new uint8_t[kSinusoidalLutResolution];
     float step = 2.0f * M_PI / kSinusoidalLutResolution;
     for (int i = 0; i < kSinusoidalLutResolution; ++i) {
-      lut[i] = min(static_cast<int>(round(cos(i * step) * kTestBrightness / 2)) + kTestBrightness / 2, kTestBrightness);
+      // // // lut[i] = min(static_cast<int>(round(cos(i * step) * kTestBrightness / 2)) + kTestBrightness / 2, kTestBrightness);
     }
     return lut;
   }();
