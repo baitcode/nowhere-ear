@@ -56,6 +56,7 @@ class Sensor {
     this.sensorPosition = sensorConfig.position
     this.stick = sensorConfig.stick
     this.key = sensorConfig.name
+    this.positions = sensorConfig.position
     // this.baudRate = arduinoConfig.baudRate
     this.active = true
   }
@@ -86,9 +87,10 @@ class Sensor {
 
     const brightness = Math.max(Math.min(this.tension, 127), 0)
     if (brightness > 1) {
-      console.log('fire', parseInt(this.key) + 9, {brightness})
+      // console.log('fire', parseInt(this.key) + 9, {brightness})
       let buffer = this.kyc.makeFireMessage(parseInt(this.key) + 9, brightness)
       this.kyc.write(buffer)
+      // this.kyc.write(this.kyc.makeSwapMessage())
     }
     // kyc.write(kyc.makeSwitchMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
     // this.kyc.write(this.kyc.makeSwapMessage())
@@ -192,7 +194,7 @@ class KYCled {
 
 export class KYCClient {
   constructor(kycConfig, ledConfig) {
-    this.address = kycConfig.portUsed.pi
+    this.address = kycConfig.portUsed.mac
     this.active = false
     // this.ledStripsCount = config.ledStripsCount
     this.sensorsCount = kycConfig.sensors.length

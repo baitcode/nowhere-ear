@@ -184,7 +184,7 @@ const calculateDataForRealLeds = (sensors) => {
 		stick: sensor.stick,
 		slowSensorValue: sensor.slowSensorValue,
 		fastSensorValue: sensor.fastSensorValue,
-		key: sensor.name
+		key: sensor.key
 	}))
 
 	// console.log({realSensorsData})
@@ -200,6 +200,7 @@ const calculateDataForRealLeds = (sensors) => {
 if (kyc && kycSensors && kycSensors.length) {
 	// console.log('we are updating', {kyc, kycSensors})
 	// console.log({ledsData})
+  kyc.makeSwapMessage()
 
 	kyc.serialPort.on('data', (data) => {
     try {
@@ -215,12 +216,12 @@ if (kyc && kycSensors && kycSensors.length) {
           // }
           const combinedLedsData = calculateDataForRealLeds(kyc.sensors)
           kyc.leds.forEach(led => {
-            // console.log(combinedLedsData.leds)
             const thisLedData = combinedLedsData.find(ledsData => ledsData.key === led.name)
             // console.log({thisLedData})
             if (thisLedData) {
               const leds = thisLedData.leds
               if (leds && leds.length) {
+                // console.log({leds})
                 led.drawFrame(leds)
               }
             }
@@ -236,13 +237,13 @@ if (kyc && kycSensors && kycSensors.length) {
             // kyc.write(kyc.makeSwapMessage())
             sensor.makeFire()
           })
-          kyc.write(kyc.makeSwapMessage())
+          // kyc.write(kyc.makeSwapMessage())
           
           break
         case "Pull":
           // console.log('message content', message.content)11
           message.sensorData.forEach((data, i) => {
-              // console.log('pull', 10 + i, data)
+              console.log('pull', 10 + i, data)
               kyc.sensors[i].update(data)
               // const brightness = Math.max(Math.min(kyc.sensors[i].tension, 127), 0)
               // console.log('pull', 10 + i, {brightness})

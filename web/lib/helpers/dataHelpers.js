@@ -23,20 +23,38 @@ const putLedsInBufferArray = (stickLedsConfig, numberOfLeds) => {
 }
 
 // Takes leds data for one stick, puts it into Byte array to be sent to certain Arduino
-const putLedsInBufferArrayKYC = (stickLedsData) => {
+const putLedsInBufferArrayKYC = (stickLedsData, ledsNumber) => {
     if (stickLedsData) {
-        const bufferArray = new ArrayBuffer(stickLedsData.length * 3)
+        const bufferArray = new ArrayBuffer(ledsNumber * 3)
         const ledsBufferArray = new Uint8Array(bufferArray)
-
-        stickLedsData.forEach(led => {
-            const rgb = led.color
-            // console.log({led}, {rgb})
-            if (rgb) {
-                ledsBufferArray[led.number * 3] = rgb.r
-                ledsBufferArray[led.number * 3 + 1] = rgb.g
-                ledsBufferArray[led.number * 3 + 2] = rgb.b
+        
+        for (let i = 0; i < ledsNumber; i++) {
+            const led = stickLedsData.find(data => data.number === i)
+            
+            if (led && led.color) {
+                const rgb = led.color
+                ledsBufferArray[i * 3] = rgb.r
+                ledsBufferArray[i * 3 + 1] = rgb.g
+                ledsBufferArray[i * 3 + 2] = rgb.b
+            } else {
+                ledsBufferArray[i * 3] = 0
+                ledsBufferArray[i * 3 + 1] = 0
+                ledsBufferArray[i * 3 + 2] = 0
             }
-        })
+        }
+        // stickLedsData.forEach(led => {
+        //     const rgb = led.color
+        //     // console.log({led}, {rgb})
+        //     if (rgb) {
+        //         ledsBufferArray[led.number * 3] = rgb.r
+        //         ledsBufferArray[led.number * 3 + 1] = rgb.g
+        //         ledsBufferArray[led.number * 3 + 2] = rgb.b
+        //     } else {
+        //         ledsBufferArray[led.number * 3] = 0
+        //         ledsBufferArray[led.number * 3 + 1] = 0
+        //         ledsBufferArray[led.number * 3 + 2] = 0
+        //     }
+        // })
         return ledsBufferArray
     }
 }
