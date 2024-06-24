@@ -237,7 +237,7 @@ if (kyc && kycSensors && kycSensors.length) {
             // kyc.write(kyc.makeSwapMessage())
             sensor.makeFire()
           })
-          kyc.write(kyc.makeSwapMessage())
+          // kyc.write(kyc.makeSwapMessage())
           
           break
         case "Pull":
