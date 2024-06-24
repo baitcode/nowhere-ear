@@ -54,7 +54,7 @@
 constexpr int kNumStrips = 16;
 constexpr int kMaxStripLength = 1024;
 constexpr int kLedPinBase = 0;
-constexpr int kTestModeTimeoutUs = 1000000; // If we don't get an update for this long, go into test mode.
+// constexpr int kTestModeTimeoutUs = 1000000; // If we don't get an update for this long, go into test mode.
 
 // Switched 12V outputs.
 constexpr int kNumSwitchedOutputs = 4;
