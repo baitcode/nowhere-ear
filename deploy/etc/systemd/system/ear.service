@@ -1,9 +1,9 @@
 [Unit]
-Description=Nowhere Ear
+Description=Yokai
 
 [Service]
-WorkingDirectory=/home/pi/nowhere-ear/
-ExecStart=/home/pi/nowhere-ear/start.sh
+WorkingDirectory=/home/pi/kinki-yokai/
+ExecStart=/home/pi/kinki-yokai/start.sh
 Restart=on-failure
 User=pi
 
