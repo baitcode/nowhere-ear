@@ -234,8 +234,9 @@ export class KYCClient {
     // })
     this.serialPort.on('close', (error) => {
       console.log(`Port was closed., port: ${this.address}`, error)
+      this.serialPort = new SerialPort(this.address)
       // this.active = false
-      throw error
+      // throw error
     })
   }
 
