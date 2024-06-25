@@ -225,6 +225,7 @@ export class KYCClient {
     console.log(`reading on ${this.address}`)
     this.serialPort.on('error', (error) => {
       console.log(error)
+      throw error
       // this.active = false
     })
     // this.serialPort.on('data', (data) => {
@@ -234,6 +235,7 @@ export class KYCClient {
     this.serialPort.on('close', (error) => {
       console.log(`Port was closed., port: ${this.address}`, error)
       // this.active = false
+      throw error
     })
   }
 
