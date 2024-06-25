@@ -24,18 +24,19 @@
 
 // Takes leds data for one stick, puts it into Byte array to be sent to certain Arduino
 const putLedsInBufferArrayKYC = (stickLedsData, ledsNumber) => {
-    if (stickLedsData) {
+    // if (stickLedsData) {
         const bufferArray = new ArrayBuffer(ledsNumber * 3)
         const ledsBufferArray = new Uint8Array(bufferArray)
         
         for (let i = 0; i < ledsNumber; i++) {
-            const led = stickLedsData.find(data => data.number === i)
+            const led = (stickLedsData && stickLedsData.leds)
+                ? stickLedsData.leds.find(data => data.number === i) : null
             
             if (led && led.color) {
                 const rgb = led.color
-                ledsBufferArray[i * 3] = rgb.r
-                ledsBufferArray[i * 3 + 1] = rgb.g
-                ledsBufferArray[i * 3 + 2] = rgb.b
+                ledsBufferArray[i * 3] = rgb.r || 0
+                ledsBufferArray[i * 3 + 1] = rgb.g || 0
+                ledsBufferArray[i * 3 + 2] = rgb.b || 0
             } else {
                 ledsBufferArray[i * 3] = 0
                 ledsBufferArray[i * 3 + 1] = 0
@@ -56,7 +57,7 @@ const putLedsInBufferArrayKYC = (stickLedsData, ledsNumber) => {
         //     }
         // })
         return ledsBufferArray
-    }
+    // }
 }
 
 const addColor = (ledOne, ledTwo) => {

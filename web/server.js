@@ -217,14 +217,15 @@ if (kyc && kycSensors && kycSensors.length) {
           const combinedLedsData = calculateDataForRealLeds(kyc.sensors)
           kyc.leds.forEach(led => {
             const thisLedData = combinedLedsData.find(ledsData => ledsData.key === led.name)
+            led.drawFrame(thisLedData)
             // console.log({thisLedData})
-            if (thisLedData) {
-              const leds = thisLedData.leds
-              if (leds && leds.length) {
-                // console.log({leds})
-                led.drawFrame(leds)
-              }
-            }
+            // if (thisLedData) {
+            //   const leds = thisLedData.leds
+            //   if (leds && leds.length) {
+            //     // console.log({leds})
+            //     led.drawFrame(leds)
+            //   }
+            // }
           })
   
           kyc.sensors.forEach((sensor) => {

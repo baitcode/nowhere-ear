@@ -47,20 +47,24 @@ class Sensor {
     // }
     this.kyc = kyc
 
-    this.tension = Math.max(sensorConfig.baseTension, 0)
+    this.tension = 0
+    // this.baseTension = 0
     this.fastSensorSpeed = 0
     this.slowSensorSpeed = 0
     this.oldTension = [this.tension, this.tension, this.tension, this.tension]
     this.sensorPosition = sensorConfig.position
     this.stick = sensorConfig.stick
     this.key = sensorConfig.name
-    this.positions = sensorConfig.position
+    // this.positions = sensorConfig.position
     // this.baudRate = arduinoConfig.baudRate
-    this.active = true
+    // this.active = true
   }
 
   update(sensorData) {
     if (sensorData) {
+        // if(!this.baseTension) {
+        //   this.baseTension = sensorData.raw
+        // }
         const tension = sensorData.fast
         this.fastSensorValue = Math.max(sensorData.fast, 0)
         this.slowSensorValue = Math.max(sensorData.slow, 0)
@@ -83,9 +87,10 @@ class Sensor {
     //   color: colorStep(this.currentLights[i].color, this.futureLights[i].color, 0.1)
     // }))
 
-    const brightness = Math.max(Math.min(this.tension, 127), 0)
+    const brightness = Math.min(Math.max(this.tension, 0), 127)
+    // console.log('bla', {brightness}, this.tension)
     if (brightness > 1) {
-      // console.log('fire', parseInt(this.key) + 9, {brightness})
+      // console.log('fire', parseInt(this.key) + 9, {brightness}, this.tension)
       let buffer = this.kyc.makeFireMessage(parseInt(this.key) + 9, brightness)
       this.kyc.write(buffer)
       // this.kyc.write(this.kyc.makeSwapMessage())
@@ -220,7 +225,7 @@ export class KYCClient {
     console.log(`reading on ${this.address}`)
     this.serialPort.on('error', (error) => {
       console.log(error)
-      this.active = false
+      // this.active = false
     })
     // this.serialPort.on('data', (data) => {
     //   const message = this.readMessage(data)
@@ -228,7 +233,7 @@ export class KYCClient {
     // })
     this.serialPort.on('close', (error) => {
       console.log(`Port was closed., port: ${this.address}`, error)
-      this.active = false
+      // this.active = false
     })
   }
 
@@ -269,6 +274,7 @@ export class KYCClient {
     // const message = Buffer.alloc(2);
     // message.writeIntLE(channel, 0, 1)
     // message.writeIntLE(brightness, 1, 1)
+    console.log({channel, brightness})
     const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
     return this._makeMessage(MESSAGE_TYPES.Fire.byteValue, message);
   }
