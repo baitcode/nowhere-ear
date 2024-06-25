@@ -261,6 +261,7 @@ if (kyc && kycSensors && kycSensors.length) {
         }
     } catch (error) {
       console.log('Error in port on data', {error})
+      throw error
     }
 	 })
 }
