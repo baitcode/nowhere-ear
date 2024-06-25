@@ -19,7 +19,7 @@ sound_groups = {"basic_with_rainbow":["basic_with_rainbow","tensionWithEcho"],
                 'sleep':['sleep'],
                 'easterEgg':['easterEgg']}
 NUM_CHANNELS = 5
-NUM_LEDS = 40
+NUM_LEDS = 160
 
 ### CONSTANTS
 
