@@ -1,4 +1,5 @@
 /* global console */
+import {NUMBER_OF_LEDS} from './constants'
 
 export const calculateRealColumns = (selectedStructure) => {
     switch (selectedStructure) {
@@ -360,6 +361,53 @@ export const calculateRealColumns = (selectedStructure) => {
                     }
                 }
             ]
+        case 'cemetery':
+            return [{
+                numberOfLEDs: NUMBER_OF_LEDS,
+                name: '1',
+                init: {
+                    x: 397,
+                    y: -180,
+                    z: 0
+                }
+            },
+            {
+                numberOfLEDs: NUMBER_OF_LEDS,
+                name: '2',
+                init: {
+                    x: 397 * Math.cos(2 * Math.PI * 1 / 5),
+                    y: -180,
+                    z: 397 * Math.sin(2 * Math.PI * 1 / 5)
+                }
+            },
+            {
+                numberOfLEDs: NUMBER_OF_LEDS,
+                name: '3',
+                init: {
+                    x: 397 * Math.cos(2 * Math.PI * 2 / 5),
+                    y: -180,
+                    z: 397 * Math.sin(2 * Math.PI * 2 / 5)
+                }
+            },
+            {
+                numberOfLEDs: NUMBER_OF_LEDS,
+                name: '4',
+                init: {
+                    x: 397 * Math.cos(2 * Math.PI * 3 / 5),
+                    y: -180,
+                    z: 397 * Math.sin(2 * Math.PI * 3 / 5)
+                }
+            },
+            {
+                numberOfLEDs: NUMBER_OF_LEDS,
+                name: '5',
+                init: {
+                    x: 397 * Math.cos(2 * Math.PI * 4 / 5),
+                    y: -180,
+                    z: 397 * Math.sin(2 * Math.PI * 4 / 5)
+                }
+            }
+        ]
             case 'mcf-mb-2022':
                 return [{
                     numberOfLEDs: 40,

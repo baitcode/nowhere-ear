@@ -3,30 +3,68 @@
 /* global Uint8Array */
 
 // Takes leds data for one stick, puts it into Byte array to be sent to certain Arduino
-const putLedsInBufferArray = (stickLedsConfig, numberOfLeds) => {
-    const bufferArray = new ArrayBuffer(numberOfLeds * 3 + 3)
-    const ledsBufferArray = new Uint8Array(bufferArray)
-    const startByte = 0x10
-    const sizeByte = 0x11
-    const checkSum = 0x12
+// const putLedsInBufferArray = (stickLedsConfig, numberOfLeds) => {
+//     const bufferArray = new ArrayBuffer(numberOfLeds * 3 + 3)
+//     const ledsBufferArray = new Uint8Array(bufferArray)
+//     const startByte = 0x10
+//     const sizeByte = 0x11
+//     const checkSum = 0x12
 
-    ledsBufferArray[0] = startByte
-    ledsBufferArray[1] = sizeByte
-    stickLedsConfig.slice(0, numberOfLeds).forEach(led => {
-        const rgb = led.color
-        ledsBufferArray[led.number * 3 + 2] = rgb.r
-        ledsBufferArray[led.number * 3 + 3] = rgb.g
-        ledsBufferArray[led.number * 3 + 4] = rgb.b
-    })
-    ledsBufferArray[numberOfLeds * 3 + 2] = checkSum
-    return ledsBufferArray
+//     ledsBufferArray[0] = startByte
+//     ledsBufferArray[1] = sizeByte
+//     stickLedsConfig.slice(0, numberOfLeds).forEach(led => {
+//         const rgb = led.color
+//         ledsBufferArray[led.number * 3 + 2] = rgb.r
+//         ledsBufferArray[led.number * 3 + 3] = rgb.g
+//         ledsBufferArray[led.number * 3 + 4] = rgb.b
+//     })
+//     ledsBufferArray[numberOfLeds * 3 + 2] = checkSum
+//     return ledsBufferArray
+// }
+
+// Takes leds data for one stick, puts it into Byte array to be sent to certain Arduino
+const putLedsInBufferArrayKYC = (stickLedsData, ledsNumber) => {
+    // if (stickLedsData) {
+        const bufferArray = new ArrayBuffer(ledsNumber * 3)
+        const ledsBufferArray = new Uint8Array(bufferArray)
+        
+        for (let i = 0; i < ledsNumber; i++) {
+            const led = (stickLedsData && stickLedsData.leds)
+                ? stickLedsData.leds.find(data => data.number === i) : null
+            
+            if (led && led.color) {
+                const rgb = led.color
+                ledsBufferArray[i * 3] = rgb.r || 0
+                ledsBufferArray[i * 3 + 1] = rgb.g || 0
+                ledsBufferArray[i * 3 + 2] = rgb.b || 0
+            } else {
+                ledsBufferArray[i * 3] = 0
+                ledsBufferArray[i * 3 + 1] = 0
+                ledsBufferArray[i * 3 + 2] = 0
+            }
+        }
+        // stickLedsData.forEach(led => {
+        //     const rgb = led.color
+        //     // console.log({led}, {rgb})
+        //     if (rgb) {
+        //         ledsBufferArray[led.number * 3] = rgb.r
+        //         ledsBufferArray[led.number * 3 + 1] = rgb.g
+        //         ledsBufferArray[led.number * 3 + 2] = rgb.b
+        //     } else {
+        //         ledsBufferArray[led.number * 3] = 0
+        //         ledsBufferArray[led.number * 3 + 1] = 0
+        //         ledsBufferArray[led.number * 3 + 2] = 0
+        //     }
+        // })
+        return ledsBufferArray
+    // }
 }
 
 const addColor = (ledOne, ledTwo) => {
     return {
-        r: Math.min(ledOne.r + ledTwo.r, 255),
-        g: Math.min(ledOne.g + ledTwo.g, 255),
-        b: Math.min(ledOne.b + ledTwo.b, 255)
+        r: Math.min((ledOne ? ledOne.r : 0) + (ledTwo ? ledTwo.r : 0), 255),
+        g: Math.min((ledOne ? ledOne.g : 0) + (ledTwo ? ledTwo.g : 0), 255),
+        b: Math.min((ledOne ? ledOne.b : 0) + (ledTwo ? ledTwo.b : 0), 255)
     }
 }
 
@@ -105,7 +143,8 @@ export {
     addColor,
     combineLEDs,
 	regroupConfig,
-    putLedsInBufferArray,
+    // putLedsInBufferArray,
     getInfoFromSensors,
-    eliminateLEDsConfigRepetition
+    eliminateLEDsConfigRepetition,
+    putLedsInBufferArrayKYC
 }

@@ -1,0 +1,13 @@
+# Target labels
+ PioasmBuild
+# Source files and their labels
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/CMakeFiles/PioasmBuild
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/CMakeFiles/PioasmBuild.rule
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/CMakeFiles/PioasmBuild-complete.rule
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/pioasm/src/PioasmBuild-stamp/PioasmBuild-build.rule
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/pioasm/src/PioasmBuild-stamp/PioasmBuild-configure.rule
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/pioasm/src/PioasmBuild-stamp/PioasmBuild-download.rule
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/pioasm/src/PioasmBuild-stamp/PioasmBuild-install.rule
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/pioasm/src/PioasmBuild-stamp/PioasmBuild-mkdir.rule
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/pioasm/src/PioasmBuild-stamp/PioasmBuild-patch.rule
+/Users/katerinaloschinina/github_projects/kinki-yokai/firmware/kat_controller/pico-sdk/src/rp2_common/tinyusb/pioasm/src/PioasmBuild-stamp/PioasmBuild-update.rule

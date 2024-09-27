@@ -1,0 +1,365 @@
+import SerialPort from 'serialport'
+import assert from "assert";
+import {putLedsInBufferArrayKYC, regroupConfig} from "../helpers/dataHelpers";
+// import kyctest from "../modes/kyc/kyctestmode";
+// import flicker from "../modes/flicker";
+import randomwhite from "../modes/kyc/randomwhite";
+// import {colorStep} from "../helpers/colorHelpers";
+
+class MessageType {
+  constructor(name, byteValue) {
+    this.name = name
+    this.byteValue = byteValue
+  }
+
+  toString() {
+    return this.name
+  }
+}
+
+const  MESSAGE_TYPES = {
+  // in
+  Ready: new MessageType("Ready", Buffer.from([0x08])),
+  Debug: new MessageType("Debug", Buffer.from([0x01])),
+  Pull: new MessageType("Pull", Buffer.from([0x02])),
+
+  // out
+  Data: new MessageType("Data", Buffer.from([0x01])),
+  Fire: new MessageType("Fire", Buffer.from([0x02])),
+  Swap: new MessageType("Swap", Buffer.from([0x10])),
+  Switch: new MessageType("Switch", Buffer.from([0x20]))
+}
+
+const START_SEQ = Buffer.concat([Buffer.from([0xe5]), Buffer.from([0x6b]), Buffer.from([0x03]), Buffer.from([0x1d])]);
+
+class Sensor {
+  constructor(sensorConfig, kyc) {
+    // this.position = position
+    // this.tension = 0
+    // // it was always 10 in the old config
+    // this.sensorPosition = 10
+
+    // this.oldTension = [0, 0, 0, 0]
+    // this.ball = `${position + 1}`
+    // this.key = "/dev/ttyUSB0"
+    // this.rawHistory = [0]
+    // this.onChange = () => {
+    // }
+    this.kyc = kyc
+
+    this.tension = 0
+    // this.baseTension = 0
+    this.fastSensorSpeed = 0
+    this.slowSensorSpeed = 0
+    this.oldTension = [this.tension, this.tension, this.tension, this.tension]
+    this.sensorPosition = sensorConfig.position
+    this.stick = sensorConfig.stick
+    this.key = sensorConfig.name
+    // this.positions = sensorConfig.position
+    // this.baudRate = arduinoConfig.baudRate
+    // this.active = true
+  }
+
+  update(sensorData) {
+    if (sensorData) {
+        // if(!this.baseTension) {
+        //   this.baseTension = sensorData.raw
+        // }
+        const tension = sensorData.fast
+        this.fastSensorValue = Math.max(sensorData.fast, 0)
+        this.slowSensorValue = Math.max(sensorData.slow, 0)
+        if (!tension) return
+        for (let key = 0; key < 4; key++) {
+            this.oldTension[key] = (this.oldTension[key])
+                ? this.lerp(this.oldTension[key], this.tension, 0.1 * (key + 1))
+                : this.tension
+            this.oldTension[key] = (this.oldTension[key] < 1)
+                ? 0
+                : this.oldTension[key]
+        }
+        this.tension = Math.max(tension, 0)
+    }
+  }
+
+  makeFire() {
+    // const attemptedStep = [...Array(this.numberOfLEDs).keys()].map(i => ({
+    //   number: i,
+    //   color: colorStep(this.currentLights[i].color, this.futureLights[i].color, 0.1)
+    // }))
+
+    const brightness = Math.min(Math.max(this.tension, 0), 127)
+    // console.log('bla', {brightness}, this.tension)
+    if (brightness > 1) {
+      // console.log('fire', parseInt(this.key) + 9, {brightness}, this.tension)
+      let buffer = this.kyc.makeFireMessage(parseInt(this.key) + 9, brightness)
+      this.kyc.write(buffer)
+      // this.kyc.write(this.kyc.makeSwapMessage())
+    }
+    // kyc.write(kyc.makeSwitchMessage(10 + key, Math.max(Math.min(sensor.tension, 127), 0)))
+    // this.kyc.write(this.kyc.makeSwapMessage())
+    // console.log('frame current lights', this.currentLights[5])
+  }
+
+  //  {raw, fast, slow}
+  // recordPull(sensorData) {
+  //   const tension = sensorData.fast
+  //   this.fastSensorValue = Math.max(sensorData.fast, 0)
+  //   this.slowSensorValue = Math.max(sensorData.slow, 0)
+  //   if (!tension) return
+  //   for (let key = 0; key < 4; key++) {
+  //     this.oldTension[key] = (this.oldTension[key])
+  //       ? this._lerp(this.oldTension[key], this.tension, 0.1 * (key + 1))
+  //       : this.tension
+  //     this.oldTension[key] = (this.oldTension[key] < 1)
+  //       ? 0
+  //       : this.oldTension[key]
+  //   }
+  //   this.tension = Math.max(tension, 0)
+  //   // this.onChange(this)
+  // }
+
+
+  lerp(inValue, outValue, fraction) {
+    return inValue + (outValue - inValue) * fraction
+  }
+
+}
+
+class KYCled {
+  constructor(channel, config, kyc) {
+    this.kyc = kyc
+    this.name = config.name
+    this.numberOfLEDs = config.numberOfLEDs
+    this.channel = channel
+    this.init = config.init
+    // this.mode = flicker //default
+    this.currentLights = [...Array(config.numberOfLEDs).keys()].map(i => ({
+      number: i,
+      color: {
+        r: 0,
+        g: 0,
+        b: 0
+      }
+    }))
+    this.futureLights = [...Array(config.numberOfLEDs).keys()].map(i => ({
+      number: i,
+      color: {
+        r: 0,
+        g: 0,
+        b: 0
+      }
+    }))
+  }
+
+  setMode(mode) {
+    this.mode = mode
+    return this
+  }
+
+  bindSensor(sensor) {
+    this.sensor = sensor
+    this.sensor.onChange = () => {
+      this.calculateFrame()
+    }
+    return this
+  }
+
+  calculateFrame() {
+    const frameChange = regroupConfig(this.mode([this], [this.sensor]).filter(Boolean)).find(config => config.key === this.name).leds
+    this.futureLights = this.currentLights.map(cl => {
+      const hit = frameChange.filter(frame => frame.number === cl.number)
+      if(hit.length > 0) {
+        return hit[0]
+      } else {
+        return {
+          number: cl.number,
+          color: {r: 0, g: 0, b: 0}
+        }
+      }
+    })
+  }
+
+  drawFrame(ledsData) {
+    // const attemptedStep = [...Array(this.numberOfLEDs).keys()].map(i => ({
+    //   number: i,
+    //   color: colorStep(this.currentLights[i].color, this.futureLights[i].color, 0.1)
+    // }))
+
+    let ledData = putLedsInBufferArrayKYC(ledsData, this.numberOfLEDs);
+    console.log('draw', this.channel)
+    let buffer = this.kyc.makeLedDataMessage(this.channel, this.numberOfLEDs, ledData);
+    this.kyc.write(buffer)
+    // this.kyc.write(this.kyc.makeSwapMessage())
+    this.currentLights = []
+    // console.log('frame current lights', this.currentLights[5])
+  }
+}
+
+export class KYCClient {
+  constructor(kycConfig, ledConfig) {
+    this.address = kycConfig.portUsed.pi
+    this.active = false
+    // this.ledStripsCount = config.ledStripsCount
+    this.sensorsCount = kycConfig.sensors.length
+    this.serialPort = new SerialPort(this.address)
+    // this.sensors = config
+    this.sensors = kycConfig.sensors.map(sensorConfig => new Sensor(sensorConfig, this))
+
+    // console.log('here', this.sensors)
+
+    this.leds = []
+    for (let i = 0; i < ledConfig.length; i++) {
+      let ledstrip = new KYCled(i, ledConfig[i], this);
+      if (this.sensors.length > i) {
+        ledstrip.bindSensor(this.sensors[i])
+      } else {
+        ledstrip.setMode(randomwhite)
+      }
+      this.leds.push(ledstrip)
+    }
+
+    this.init()
+  }
+
+  init() {
+    console.log(`reading on ${this.address}`)
+    this.serialPort.on('error', (error) => {
+      console.log(error)
+      throw error
+      // this.active = false
+    })
+    // this.serialPort.on('data', (data) => {
+    //   const message = this.readMessage(data)
+    //   this.processMessage(message)
+    // })
+    this.serialPort.on('close', (error) => {
+      console.log(`Port was closed., port: ${this.address}`, error)
+      this.serialPort = new SerialPort(this.address)
+      // this.active = false
+      // throw error
+    })
+  }
+
+  // simplest possible, supporting one callback per event
+  on(event, callback) {
+    this._events[event] = callback
+  }
+
+  // processMessage(message) {
+  //   switch (message.type.name) {
+  //     case "Ready":
+  //       if (!this.active) {
+  //         this.active = true
+  //       }
+  //       this.leds.forEach(l => l.drawFrame())
+  //       break
+  //     case "Pull":
+  //       console.log('message content', message.content.data)
+  //       message.content.data.forEach((data, i) => {
+  //         this.sensors[i].update(data)
+  //       })
+  //       break
+  //     default:
+  //       break;
+  //   }
+  // }
+
+  write(buffer) {
+    this.serialPort.write(buffer)
+  }
+
+  makeSwapMessage() {
+    return this._makeMessage(MESSAGE_TYPES.Swap.byteValue, Buffer.from([]));
+  }
+
+  // [LED_OUTPUT_CHANNEL (1)][FIRE_BRIGHTNESS (1)]
+  makeFireMessage(channel, brightness) {
+    // const message = Buffer.alloc(2);
+    // message.writeIntLE(channel, 0, 1)
+    // message.writeIntLE(brightness, 1, 1)
+    console.log({channel, brightness})
+    const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
+    return this._makeMessage(MESSAGE_TYPES.Fire.byteValue, message);
+  }
+
+  // makeSwitchMessage(channel, brightness) {
+  //   // const message = Buffer.alloc(2);
+  //   // message.writeIntLE(channel, 0, 1)
+  //   // message.writeIntLE(brightness, 1, 1)
+  //   const message = Buffer.concat([intToBuff(channel, 1), intToBuff(brightness, 1)])
+  //   return this._makeMessage(MESSAGE_TYPES.Switch.byteValue, message);
+  // }
+
+
+  // [LED_OUTPUT_CHANNEL (1)][NUM_LEDS (2)][DATA (NUM_LEDS * 3)]
+  // [LED0-G (1)][LED0-R (1)][LED0-B (1)][LED1-G (1)][LED1-R (1)][LED1-B (1)]...
+  makeLedDataMessage(channel, ledCount, ledData) {
+    const dataBuff = Buffer.from(ledData)
+    const out = Buffer.concat([intToBuff(channel, 1), intToBuff(ledCount, 2), dataBuff])
+    return this._makeMessage(MESSAGE_TYPES.Data.byteValue, out);
+  }
+
+  readMessage(data) {
+    // this._waitUntilStartSeq(data);
+    // let content = {}
+    let msgType = "NONE"
+    try {
+      msgType = this._incomingType(data.subarray(4, 5))
+      // console.log({msgType})
+      // if (msgType === MESSAGE_TYPES.Ready) {
+      // } else {
+      //   const msgLen = data.readIntLE(5, 2)
+        if (msgType === MESSAGE_TYPES.Debug) {
+          return {type: msgType, message: data.toString('utf8')}
+        } else if (msgType === MESSAGE_TYPES.Pull) { 
+          const sensorCount = data.readIntLE(7, 1)
+
+          const sensorData = []
+          for (let i = 0; i < this.sensors.length; i++) {
+            const offset = 6 * i
+            sensorData.push(
+              {
+                raw: data.readIntLE(9 + offset, 2),
+                fast: data.readIntLE(11 + offset, 2),
+                slow: data.readIntLE(13 + offset, 2)
+              }
+            )
+          }
+          // console.log({sensorCount, sensorData})
+          return {type: msgType, sensorCount, sensorData}
+        }
+      // }
+    } catch (error) {
+      console.log('error while reading', {error, data})
+    }
+    return {type: msgType}
+  }
+
+  // [START (4)][MESSAGE_TYPE (1)][MESSAGE_LEN (2)][CONTENT (MESSAGE_LEN)]
+  _makeMessage(messageType, message) {
+    assert(Buffer.byteLength(messageType) === 1, "type too long")
+    assert(Buffer.isBuffer(message), "message is not a buffer")
+    const msgLenBuff = Buffer.alloc(2)
+    msgLenBuff.writeIntLE(Buffer.byteLength(message), 0, 2);
+    return Buffer.concat([START_SEQ, messageType, msgLenBuff, message])
+  }
+
+  _incomingType(typeBuff) {
+    if(typeBuff.equals(MESSAGE_TYPES.Ready.byteValue)) {
+      return MESSAGE_TYPES.Ready
+    }
+    if(typeBuff.equals(MESSAGE_TYPES.Pull.byteValue)) {
+      return MESSAGE_TYPES.Pull
+    }
+    if (typeBuff.equals(MESSAGE_TYPES.Debug.byteValue)) {
+      return MESSAGE_TYPES.Debug
+    }
+    return new MessageType("UNKNOWN")
+  }
+}
+
+function intToBuff(number, buffLen) {
+  const buff = Buffer.alloc(buffLen)
+  buff.writeIntLE(number, 0, buffLen)
+  return buff
+}
